@@ -227,18 +227,18 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <!-- 1. POSIZIONE -->
-                                <th class="px-1 sm:px-3 py-3 text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider header-pos-delta">POS</th>
-                                <!-- 2. DELTA POSIZIONE -->
-                                <th class="px-1 sm:px-3 py-3 text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider header-pos-delta">Δ POS.</th>
-                                <!-- 3. NOME GIOCATORE -->
-                                <th class="px-2 sm:px-4 py-3 text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider header-name">UTENTE</th>
-                                <!-- 4. TOTALE PRECEDENTE -->
-                                <th class="px-2 sm:px-4 py-3 text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider header-points" id="header-prev-total">TOTALE PREC.</th>
-                                <!-- 5. PUNTI GIORNATA -->
-                                <th class="px-2 sm:px-4 py-3 text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider header-points" id="header-day-points">PUNTI GIORNATA</th>
-                                <!-- 6. PUNTI TOTALI -->
-                                <th class="px-2 sm:px-4 py-3 text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider header-points" id="header-total-points">PUNTI TOTALI</th>
+                                <!-- 1. POSIZIONE: Padding ridotto a sm:px-2 -->
+                                <th class="px-1 sm:px-2 py-3 text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider header-pos-delta">POS</th>
+                                <!-- 2. DELTA POSIZIONE: Padding ridotto a sm:px-2 -->
+                                <th class="px-1 sm:px-2 py-3 text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider header-pos-delta">Δ POS.</th>
+                                <!-- 3. NOME GIOCATORE: Padding ridotto a sm:px-3 -->
+                                <th class="px-2 sm:px-3 py-3 text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider header-name">UTENTE</th>
+                                <!-- 4. TOTALE PRECEDENTE: Padding ridotto a sm:px-3 -->
+                                <th class="px-2 sm:px-3 py-3 text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider header-points" id="header-prev-total">TOTALE PREC.</th>
+                                <!-- 5. PUNTI GIORNATA: Padding ridotto a sm:px-3 -->
+                                <th class="px-2 sm:px-3 py-3 text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider header-points" id="header-day-points">PUNTI GIORNATA</th>
+                                <!-- 6. PUNTI TOTALI: Padding ridotto a sm:px-3 -->
+                                <th class="px-2 sm:px-3 py-3 text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider header-points" id="header-total-points">PUNTI TOTALI</th>
                             </tr>
                         </thead>
                         <tbody id="ranking-body" class="divide-y divide-gray-200">
@@ -473,10 +473,9 @@
             
             // 2. Identifica l'MVP (punteggio di giornata più alto)
             let maxDayScore = -Infinity;
-            let mvpPlayer = null; // Tieni traccia del primo MVP trovato per gestire i pareggi MVP
+            let mvpPlayer = null; 
             
             currentRankList.forEach(data => {
-                // Troviamo il punteggio massimo di giornata, ma solo se è positivo
                 if (data.dayScore > maxDayScore) {
                     maxDayScore = data.dayScore;
                     mvpPlayer = data.name;
@@ -489,15 +488,10 @@
                 let isMVP = false;
                 
                 if (dayIndex > 1) {
-                    // Prende il rank del giorno precedente, altrimenti usa il rank corrente (Delta=0)
                     const prevRank = prevRankMap[data.name] || data.rank; 
                     positionChange = prevRank - data.rank;
                 } 
 
-                // Assegna l'MVP a chi ha il punteggio di giornata più alto (e solo se > 0)
-                // Se ci sono pareggi, tutti i giocatori con quel punteggio massimo sono considerati MVP,
-                // ma per il flag "isMVP" qui usiamo solo il nome (anche se l'updateRankingDisplay gestisce
-                // correttamente l'icona per tutti quelli con maxDayScore > 0)
                 if (data.dayScore === maxDayScore && maxDayScore > 0) {
                      isMVP = true;
                 }
@@ -512,7 +506,7 @@
             return finalRankingData;
         }
 
-        // --- NUOVA LOGICA: Calcolo Statistiche Storiche ---
+        // --- Calcolo Statistiche Storiche ---
         
         /**
          * Calcola tutte le statistiche storiche accumulando i dati di tutte le giornate.
@@ -525,7 +519,7 @@
 
             const stats = RAW_CUMULATIVE_DATA.reduce((acc, player) => {
                 acc[player.name] = {
-                    headDayCount: 0, // RINOMINATO: Giornate in testa
+                    headDayCount: 0, // Giornate in testa (Rank 1)
                     mvpCount: 0,
                     bestClimberCount: 0,
                     totalDayScore: 0,
@@ -552,7 +546,7 @@
 
                     // 1. Giornate in testa (Rank 1)
                     if (data.rank === 1) {
-                        stats[playerName].headDayCount++; // RINOMINATO
+                        stats[playerName].headDayCount++; 
                     }
 
                     // 2. MVP di Giornata (Punteggio più alto e positivo)
@@ -576,7 +570,7 @@
                 return {
                     name: player.name,
                     totalScore: totalScore,
-                    headDayCount: playerStats.headDayCount, // RINOMINATO
+                    headDayCount: playerStats.headDayCount, 
                     mvpCount: playerStats.mvpCount,
                     bestClimberCount: playerStats.bestClimberCount,
                     averageDayScore: avgScore,
@@ -681,7 +675,7 @@
                     deltaClass = 'text-gray-400';
                 }
 
-                // --- Icona MVP (Ora basata sul maxScore calcolato qui) ---
+                // --- Icona MVP ---
                 const mvpIcon = (data.dayScore === maxScore && maxScore > 0) ? '<span class="mvp-star" title="MVP di Giornata">⭐</span>' : '';
 
 
@@ -702,49 +696,49 @@
 
                 row.className = rowClasses;
                 
-                // 1. Cella: Posizione
+                // 1. Cella: Posizione - Padding ridotto a sm:px-2
                 const posCell = `
-                    <td class="px-1 sm:px-3 py-3 whitespace-nowrap text-sm font-medium ${rankTextColorClass} data-pos-delta">
+                    <td class="px-1 sm:px-2 py-3 whitespace-nowrap text-sm font-medium ${rankTextColorClass} data-pos-delta">
                         <span class="pos-icon">${rankToDisplay}</span>
                     </td>
                 `;
                 
-                // 2. Cella: Delta Posizione
+                // 2. Cella: Delta Posizione - Padding ridotto a sm:px-2
                 const deltaPosCell = `
-                    <td class="px-1 sm:px-3 py-3 whitespace-nowrap text-center text-sm ${deltaClass} data-pos-delta">
+                    <td class="px-1 sm:px-2 py-3 whitespace-nowrap text-center text-sm ${deltaClass} data-pos-delta">
                         ${deltaIcon} ${deltaText}
                     </td>
                 `;
 
-                // 3. Cella: Nome Giocatore con Icona MVP
+                // 3. Cella: Nome Giocatore con Icona MVP - Font aumentato a sm:text-2xl e Padding ridotto a sm:px-3
                 const nameCell = `
-                    <td class="px-2 sm:px-4 py-3 whitespace-nowrap text-sm sm:text-xl italic font-bold ${nameTextColorClass} flex items-center data-name">
+                    <td class="px-2 sm:px-3 py-3 whitespace-nowrap text-xl sm:text-2xl italic font-bold ${nameTextColorClass} flex items-center data-name">
                         ${data.name} ${mvpIcon}
                     </td>
                 `;
 
-                // 4. Cella: Totale Punti Precedenti
+                // 4. Cella: Totale Punti Precedenti - Padding ridotto a sm:px-3
                 const prevTotalScoreCell = `
-                    <td class="px-2 sm:px-4 py-3 whitespace-nowrap text-center text-base font-bold text-gray-500 data-points">
+                    <td class="px-2 sm:px-3 py-3 whitespace-nowrap text-center text-base font-bold text-gray-500 data-points">
                         ${data.prevTotalScore}
                     </td>
                 `;
 
-                // 5. Cella: Punti Giornata
+                // 5. Cella: Punti Giornata - Padding ridotto a sm:px-3
                 const dayScoreCell = `
-                    <td class="px-2 sm:px-4 py-3 whitespace-nowrap text-center text-base font-mono ${dayScoreColorClass} data-points">
+                    <td class="px-2 sm:px-3 py-3 whitespace-nowrap text-center text-base font-mono ${dayScoreColorClass} data-points">
                         ${data.dayScore >= 0 ? '+' : ''}${data.dayScore}
                     </td>
                 `;
 
-                // 6. Cella: Punti Totali (ORA CON LO STESSO COLORE DELL'HEADER)
+                // 6. Cella: Punti Totali - Padding ridotto a sm:px-3
                 const totalScoreCell = `
-                    <td class="px-2 sm:px-4 py-3 whitespace-nowrap text-center text-xl sm:text-2xl font-extrabold data-points" style="color: var(--color-napoli-blue);">
+                    <td class="px-2 sm:px-3 py-3 whitespace-nowrap text-center text-xl sm:text-2xl font-extrabold data-points" style="color: var(--color-napoli-blue);">
                         ${data.totalScore}
                     </td>
                 `;
 
-                // Ordine delle celle deve corrispondere all'ordine delle intestazioni: POS, DELTA, NOME, TOT PREC, PUNTI G, PUNTI T
+                // Ordine delle celle deve corrispondere all'ordine delle intestazioni
                 row.innerHTML = posCell + deltaPosCell + nameCell + prevTotalScoreCell + dayScoreCell + totalScoreCell;
                 rankingBody.appendChild(row);
             });
@@ -762,25 +756,33 @@
         function generateStatsData(rankingData) {
             const dayScores = rankingData.map(d => d.dayScore);
             const totalPlayers = rankingData.length;
-            // Solo i cambiamenti positivi per il Delta Posizione
-            const positiveChange = rankingData.filter(d => d.positionChange > 0).length;
-            const negativeChange = rankingData.filter(d => d.positionChange < 0).length;
             
-            // Trova MVP
             const maxScore = Math.max(...dayScores);
-            const mvpPlayers = rankingData.filter(d => d.dayScore === maxScore && d.dayScore > 0);
-            const mvpNames = mvpPlayers.map(p => p.name).join(', ');
-
-            // Punti e Media
             const sumDayScores = dayScores.reduce((sum, score) => sum + score, 0);
             const averageScore = totalPlayers > 0 ? (sumDayScores / totalPlayers).toFixed(2) : 0;
             
-            // Miglior Scalatore (Delta Posizione massimo)
+            // --- Statistiche per Delta Posizione ---
+            const positiveChange = rankingData.filter(d => d.positionChange > 0).length;
+            const negativeChange = rankingData.filter(d => d.positionChange < 0).length;
+            
             const maxChange = Math.max(...rankingData.map(d => d.positionChange));
+            const minChange = Math.min(...rankingData.map(d => d.positionChange)); // NUOVO: Delta Posizione Minimo
+            
+            // Trova MVP
+            const mvpPlayers = rankingData.filter(d => d.dayScore === maxScore && d.dayScore > 0);
+            const mvpNames = mvpPlayers.map(p => p.name).join(', ');
+
+            // Miglior Scalatore
             const bestClimbers = rankingData.filter(d => d.positionChange === maxChange && maxChange > 0);
             const climberName = maxChange > 0 
                 ? bestClimbers.map(c => `${c.name} (+${maxChange})`).join(', ') 
                 : 'Nessuno Scalatore';
+
+            // NUOVO: Peggior Scalatore
+            const worstClimbers = rankingData.filter(d => d.positionChange === minChange && minChange < 0);
+            const worstClimberName = minChange < 0 
+                ? worstClimbers.map(c => `${c.name} (${minChange})`).join(', ') 
+                : 'Nessuno in discesa';
 
 
             return {
@@ -790,7 +792,9 @@
                 totalPlayers,
                 positiveChange,
                 negativeChange,
-                climberName
+                climberName,
+                worstClimberName, // NUOVO
+                minChange // NUOVO
             };
         }
 
@@ -833,6 +837,12 @@
                     stats.climberName.startsWith('Nessuno') ? 'text-gray-500' : 'text-purple-600'
                 )}
                 ${createStatCard(
+                    'Peggior Scalatore', // NUOVO
+                    stats.worstClimberName, // NUOVO
+                    'Il giocatore/i che ha perso più posizioni in classifica.',
+                    stats.worstClimberName.startsWith('Nessuno') ? 'text-gray-500' : 'text-red-600' // Colore rosso per la perdita
+                )}
+                ${createStatCard(
                     'Giocatori in Salita', 
                     `${stats.positiveChange} / ${stats.totalPlayers}`, 
                     'Hanno guadagnato almeno una posizione in classifica.',
@@ -843,12 +853,6 @@
                     `${stats.negativeChange} / ${stats.totalPlayers}`, 
                     'Hanno perso almeno una posizione in classifica.',
                     stats.negativeChange > 0 ? 'text-red-600' : 'text-gray-500'
-                )}
-                ${createStatCard(
-                    'Punto di Svolta', 
-                    dayIndex === totalDays ? 'FINALE' : 'In Corso', 
-                    `Giornata ${dayIndex} di ${totalDays} totali.`,
-                    dayIndex === totalDays ? 'text-red-700' : 'text-orange-500'
                 )}
             `;
 
@@ -1003,7 +1007,6 @@
                             title: {
                                 display: true,
                                 text: 'Giornate',
-                                font: { family: 'Calibri' }
                             },
                             grid: {
                                 display: false
@@ -1055,10 +1058,16 @@
 
         /**
          * Cattura la card della classifica e la scarica come immagine PNG.
+         * CORREZIONE: Assicura che la casella info sia nascosta prima della cattura.
          */
         window.downloadRankingImage = function() {
-            // L'acquisizione avviene SOLO sulla card principale, quindi i pulsanti di navigazione sono già nascosti
-            infoMessage("Generazione dell'immagine in corso...");
+            // 1. Forza la casella informativa a nascondersi, per evitare che venga catturata
+            infoBox.classList.add('hidden'); 
+            infoBox.classList.remove('opacity-100');
+            clearTimeout(infoTimeout); // Ferma anche eventuali timeout di nascondimento in corso
+
+            // Non mostriamo un messaggio "in corso" su schermo per evitare il problema, 
+            // ma lo logghiamo in console.
 
             html2canvas(rankingCardToCapture, {
                 scale: 2, 
@@ -1088,9 +1097,11 @@
                 link.click();
                 document.body.removeChild(link);
 
+                // 2. Mostra il messaggio di successo SOLO DOPO che la cattura è completata
                 infoMessage(`Immagine "${fileName}" scaricata con successo!`);
             }).catch(error => {
                 console.error("Errore durante la generazione dell'immagine:", error);
+                // 2. Mostra il messaggio di errore
                 infoMessage("Errore: Impossibile generare l'immagine della classifica.");
             });
         };
