@@ -182,12 +182,14 @@
                 <!-- Intestazione della tabella -->
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">POS</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">GIOCATORE</th>
+                        <!-- Modificato il padding per il mobile -->
+                        <th class="px-1 sm:px-3 py-3 text-left text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">POS</th>
+                        <!-- Modificato il padding e il font-size per il mobile -->
+                        <th class="px-2 sm:px-4 py-3 text-left text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">GIOCATORE</th>
                         <!-- I titoli verranno aggiornati dinamicamente in JS: es. TOTALE PREC. (GIORN. 12) -->
-                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" id="header-prev-total">TOTALE PREC.</th>
-                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" id="header-day-points">PUNTI GIORNATA</th>
-                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" id="header-total-points">PUNTI TOTALI</th>
+                        <th class="px-2 sm:px-4 py-3 text-center text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider" id="header-prev-total">TOTALE PREC.</th>
+                        <th class="px-2 sm:px-4 py-3 text-center text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider" id="header-day-points">PUNTI GIORNATA</th>
+                        <th class="px-2 sm:px-4 py-3 text-center text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider" id="header-total-points">PUNTI TOTALI</th>
                     </tr>
                 </thead>
                 <!-- Corpo della tabella (popolato da JavaScript) -->
@@ -389,34 +391,35 @@
                 row.className = rowClasses;
                 
                 const posCell = `
-                    <td class="px-3 py-3 whitespace-nowrap text-sm font-medium ${isFirst ? 'rank-1-text' : 'text-gray-600'}">
+                    <td class="px-1 sm:px-3 py-3 whitespace-nowrap text-sm font-medium ${isFirst ? 'rank-1-text' : 'text-gray-600'}">
                         <span class="pos-icon">${rankToDisplay}</span>
                     </td>
                 `;
-
+                
+                // Dimensione del nome ridotta per schermi piccoli (text-xl vs sm:text-3xl)
                 const nameCell = `
-                    <td class="px-4 py-3 whitespace-nowrap text-3xl italic font-bold ${isFirst ? 'rank-1-text' : 'text-gray-800'}">
+                    <td class="px-2 sm:px-4 py-3 whitespace-nowrap text-xl sm:text-3xl italic font-bold ${isFirst ? 'rank-1-text' : 'text-gray-800'}">
                         ${data.name}
                     </td>
                 `;
 
                 // TOTALE PREC. (G0 se G1, altrimenti G_prev)
                 const prevTotalScoreCell = `
-                    <td class="px-4 py-3 whitespace-nowrap text-center text-base font-bold text-gray-500">
+                    <td class="px-2 sm:px-4 py-3 whitespace-nowrap text-center text-base font-bold text-gray-500">
                         ${data.prevTotalScore}
                     </td>
                 `;
 
                 // PUNTI GIORNATA (Punti guadagnati nella giornata corrente)
                 const dayScoreCell = `
-                    <td class="px-4 py-3 whitespace-nowrap text-center text-base font-mono ${dayScoreColorClass}">
+                    <td class="px-2 sm:px-4 py-3 whitespace-nowrap text-center text-base font-mono ${dayScoreColorClass}">
                         ${data.dayScore >= 0 ? '+' : ''}${data.dayScore}
                     </td>
                 `;
 
-                // PUNTI TOTALI (Punti cumulati fino a G_corrente)
+                // PUNTI TOTALI (Punti cumulati fino a G_corrente) - Dimensione ridotta per schermi piccoli
                 const totalScoreCell = `
-                    <td class="px-4 py-3 whitespace-nowrap text-center text-3xl font-extrabold total-points-text">
+                    <td class="px-2 sm:px-4 py-3 whitespace-nowrap text-center text-2xl sm:text-3xl font-extrabold total-points-text">
                         ${data.totalScore}
                     </td>
                 `;
@@ -436,17 +439,25 @@
         function updateControls(dayIndex) {
             // Aggiorna il titolo della giornata
             matchDayTitle.textContent = `${dayIndex}a GIORNATA`;
-
-            // Aggiorna le intestazioni della tabella (usando "Giorn." come abbreviato)
+            
+            // Funzione per determinare se usare l'abbreviazione (simulazione responsive)
+            // Normalmente, si userebbe un check della larghezza dello schermo (es. window.innerWidth < 640),
+            // ma per questa implementazione usiamo una logica semplificata basata solo su JS.
+            // Sostituiamo i titoli lunghi con abbreviazioni per il mobile.
+            const isMobileView = window.innerWidth < 640; 
+            
             if (dayIndex === 1) {
-                headerPrevTotal.textContent = `TOTALE PREC. (0 Giorn.)`;
-                headerDayPoints.textContent = `PUNTI GIORNATA (Giorn. 1)`;
-                headerTotalPoints.textContent = `PUNTI TOTALI (Giorn. 1)`;
+                headerPrevTotal.textContent = isMobileView ? `T.P. (G. 0)` : `TOTALE PREC. (0 Giorn.)`;
+                headerDayPoints.textContent = isMobileView ? `P.G. (G. 1)` : `PUNTI GIORNATA (Giorn. 1)`;
+                headerTotalPoints.textContent = isMobileView ? `P.T. (G. 1)` : `PUNTI TOTALI (Giorn. 1)`;
             } else {
-                headerPrevTotal.textContent = `TOTALE PREC. (Giorn. ${dayIndex - 1})`;
-                headerDayPoints.textContent = `PUNTI GIORNATA (Giorn. ${dayIndex})`;
-                headerTotalPoints.textContent = `PUNTI TOTALI (Giorn. ${dayIndex})`;
+                headerPrevTotal.textContent = isMobileView ? `T.P. (G. ${dayIndex - 1})` : `TOTALE PREC. (Giorn. ${dayIndex - 1})`;
+                headerDayPoints.textContent = isMobileView ? `P.G. (G. ${dayIndex})` : `PUNTI GIORNATA (Giorn. ${dayIndex})`;
+                headerTotalPoints.textContent = isMobileView ? `P.T. (G. ${dayIndex})` : `PUNTI TOTALI (Giorn. ${dayIndex})`;
             }
+            // Aggiunto listener per l'aggiornamento dei controlli al ridimensionamento
+            window.onresize = () => updateControls(currentDayIndex);
+
 
             // Gestione dei pulsanti Avanti/Indietro
             prevBtn.disabled = dayIndex <= 1;
@@ -572,6 +583,9 @@
         
         // Inizia visualizzando l'ultima giornata
         goToDay(totalDays); 
+        
+        // Aggiungi un listener di resize per aggiornare i titoli della tabella in caso di rotazione o cambio dimensione.
+        window.addEventListener('resize', () => updateControls(currentDayIndex));
 
     </script>
 </body>
