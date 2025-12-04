@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classifica Schedine Amatoriali</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Libreria per i Grafici -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* Stile di base per il body: sfondo chiaro */
+        body {
+            /* FONT AGGIORNATO: Calibri come prima scelta, con fallback sans-serif */
+            font-family: 'Calibri', 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Grigio chiaro pulito */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #1f2937; /* Testo scuro per il contrasto */
+        }
+
+        /* Colore Azzurro Profondo desiderato: #0071c1 */
+        :root {
+            --color-napoli-blue: #0071c1; /* Blu Profondo */
+            --color-dark-text: #1f2937; /* Grigio scuro per il testo */
+        }
+
+        /* Stile per la card principale della classifica */
+        .ranking-card {
+            background-color: #ffffff; /* Sfondo bianco */
+            color: var(--color-dark-text); /* Testo scuro */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            /* Bordo azzurro */
+            border: 4px solid var(--color-napoli-blue); 
+            border-radius: 16px;
+            width: 100%;
+            max-width: 700px;
+        }
+
+        /* Stile per l'intestazione della classifica - AZZURRO BLU */
+        .header-bg {
+            background-color: var(--color-napoli-blue); 
+            color: #ffffff; /* Testo bianco per contrasto */
+        }
+
+        /* Stile per le righe della classifica (posizioni dispari) */
+        .rank-odd {
+            background-color: #ffffff; /* Bianco */
+        }
+        
+        /* Stile per le righe della classifica (posizioni pari) */
+        .rank-even {
+            background-color: #f9fafb; /* Grigio chiarissimo per alternanza */
+        }
+        
+        /* Stile specifico per la prima posizione (oro) */
+        .rank-1-bg {
+            background: linear-gradient(90deg, #ffd70010 0%, #ffffff 100%);
+            border-left: 5px solid #ffd700;
+        }
+
+        /* Testo della prima posizione */
+        .rank-1-text {
+            color: #000000; /* Nero per massimo contrasto su sfondo chiaro */
+            font-weight: bold;
+        }
+        
+        /* Icona per la posizione (un pallone) - AZZURRO BLU */
+        .pos-icon {
+            display: inline-block;
+            width: 1.5rem;
+            height: 1.5rem;
+            line-height: 1.5rem;
+            text-align: center;
+            border-radius: 50%;
+            background-color: var(--color-napoli-blue); /* Azzurro */
+            color: #ffffff; /* Testo bianco all'interno per contrasto */
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        /* Aggiornamento per i pulsanti di navigazione */
+        .nav-btn {
+            background-color: var(--color-napoli-blue); /* Blu Napoli */
+            color: white; /* Testo bianco */
+            font-weight: bold;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.15s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background-color: #005aa3; /* Blu più scuro al passaggio del mouse */
+            transform: translateY(-1px);
+        }
+
+        /* Stile per pulsanti disabilitati */
+        .nav-btn:disabled {
+            background-color: #d1d5db; /* Grigio chiaro */
+            color: #4b5563; /* Testo scuro */
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* Stile per il pulsante del grafico */
+        .chart-toggle-btn {
+            background-color: #10b981; /* Verde smeraldo */
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+        .chart-toggle-btn:hover {
+            background-color: #059669; /* Verde scuro al passaggio */
+        }
+
+        /* Colore per i totali e i punti giornata per contrasto */
+        .total-points-text {
+             color: var(--color-napoli-blue); /* Punti totali in azzurro */
+        }
+        /* Stile per il footer colorato, assicurando testo bianco */
+        .footer-bg {
+            background-color: var(--color-napoli-blue);
+            color: #ffffff; /* Assicura che il testo del footer sia bianco */
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <div class="ranking-card mb-8">
+        
+        <!-- Titolo e Controlli -->
+        <div class="header-bg p-4 rounded-t-xl text-center">
+            <h1 id="tournament-title" class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                🏆 Classifica TotoCN24 2025/2026
+            </h1>
+            <!-- Titolo Giornata Dinamico -->
+            <h2 id="match-day-title" class="text-xl sm:text-2xl font-bold mt-1">
+                -- GIORNATA --
+            </h2>
+        </div>
+
+        <!-- Riepilogo Generale e Pulsanti di Navigazione -->
+        <div class="p-4 flex flex-col sm:flex-row justify-between items-center border-b border-gray-200">
+            <div class="text-left mb-4 sm:mb-0">
+                <p class="text-sm text-gray-500">Totale Partecipanti</p>
+                <p id="total-players" class="text-xl font-bold text-gray-800">13</p>
+            </div>
+            <!-- Pulsanti di Navigazione -->
+            <div class="flex space-x-2 w-full sm:w-auto justify-center">
+                <button onclick="goToDay(currentDayIndex - 1)" id="prev-btn" class="nav-btn w-1/2 sm:w-auto">
+                    &larr; Indietro
+                </button>
+                <button onclick="goToDay(currentDayIndex + 1)" id="next-btn" class="nav-btn w-1/2 sm:w-auto">
+                    Avanti &rarr;
+                </button>
+            </div>
+        </div>
+        
+        <!-- Pulsante Grafico -->
+        <div class="p-4 text-center border-b border-gray-200">
+             <button onclick="toggleChart()" id="chart-toggle-btn" class="chart-toggle-btn shadow-md">
+                Vedi Andamento Stagionale (1a Giornata - 13a Giornata)
+            </button>
+        </div>
+
+        <!-- Area Grafico (Inizialmente nascosta) -->
+        <div id="chart-container" class="hidden p-4">
+            <h3 class="text-xl font-bold text-center mb-4">Andamento Punti Cumulativi (Giornate 1-13)</h3>
+            <canvas id="historicalChart"></canvas>
+        </div>
+        
+        <!-- Tabella Classifica -->
+        <div class="overflow-x-auto" id="ranking-table-container">
+            <table class="min-w-full divide-y divide-gray-200">
+                <!-- Intestazione della tabella -->
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">POS</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">GIOCATORE</th>
+                        <!-- I titoli verranno aggiornati dinamicamente in JS: es. TOTALE PREC. (GIORN. 12) -->
+                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" id="header-prev-total">TOTALE PREC.</th>
+                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" id="header-day-points">PUNTI GIORNATA</th>
+                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" id="header-total-points">PUNTI TOTALI</th>
+                    </tr>
+                </thead>
+                <!-- Corpo della tabella (popolato da JavaScript) -->
+                <tbody id="ranking-body" class="divide-y divide-gray-200">
+                    <!-- Le righe verranno inserite qui -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Messaggio Info (al posto dell'alert) -->
+        <div id="info-box" class="hidden fixed bottom-5 left-1/2 transform -translate-x-1/2 p-3 bg-gray-800 text-white rounded-lg shadow-xl text-sm transition-opacity duration-300"></div>
+
+        <!-- Footer aggiornato con EA7 e IA in grassetto e il colore esadecimale specificato -->
+        <div class="p-3 text-xs rounded-b-xl footer-bg flex justify-end">
+            Sponsored by <span class="font-bold mx-1" style="color: #f30707;">EA7</span> & <span class="font-bold mx-1" style="color: #f30707;">IA</span>
+        </div>
+    </div>
+
+    <script>
+        // DATI CUMULATIVI STORICI COMPLETI (G1-G13) FORNITI DALL'UTENTE
+        // La lista `scores` contiene i punti totali dopo la fine di ogni giornata.
+        const RAW_CUMULATIVE_DATA = [
+            { name: "Scugnizza", scores: [4, 7, 13, 17, 25, 34, 39, 45, 54, 60, 69, 77, 81] },
+            { name: "Viper2000", scores: [5, 14, 19, 25, 32, 41, 43, 53, 62, 67, 76, 76, 83] },
+            { name: "andreab1926", scores: [8, 14, 20, 25, 30, 36, 40, 47, 54, 59, 68, 80, 80] },
+            { name: "91design", scores: [8, 17, 22, 25, 32, 41, 47, 55, 61, 66, 76, 87, 92] },
+            { name: "mentalitàvincente", scores: [6, 11, 16, 22, 31, 40, 42, 47, 47, 53, 65, 76, 84] },
+            { name: "Habana", scores: [8, 15, 24, 29, 35, 43, 43, 50, 55, 60, 72, 80, 90] },
+            { name: "Old Style 1926", scores: [7, 14, 17, 23, 30, 37, 37, 44, 53, 58, 58, 67, 71] },
+            { name: "demian88", scores: [6, 11, 19, 24, 31, 38, 42, 50, 56, 61, 70, 80, 87] },
+            { name: "jacksparrowraf", scores: [6, 11, 16, 21, 28, 38, 41, 47, 54, 61, 71, 80, 88] },
+            { name: "CEMTURIO983", scores: [10, 15, 15, 21, 27, 27, 27, 27, 27, 27, 27, 27, 27] },
+            { name: "Diecimaggio87", scores: [6, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12] },
+            { name: "lucanap", scores: [7, 14, 22, 27, 35, 44, 46, 51, 59, 64, 72, 79, 88] },
+            { name: "Il Principe", scores: [0, 0, 3, 11, 17, 25, 29, 34, 39, 44, 52, 60, 68] },
+        ];
+        
+        // Mappa dei colori per coerenza visiva
+        const COLORS = [
+            '#0071c1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', 
+            '#06b6d4', '#65a30d', '#f97316', '#a1a1aa', '#3b82f6', '#14b8a6', 
+            '#f43f5e'
+        ];
+
+        // Regola di Precedenza (Tie-Breaker) fornita dall'utente.
+        const TIE_BREAKER_PRECEDENCE = [
+            "Il Principe", "lucanap", "Diecimaggio87", "CEMTURIO983", "jacksparrowraf", 
+            "demian88", "Old Style 1926", "Habana", "mentalitàvincente", "91design", 
+            "andreab1926", "Viper2000", "Scugnizza"
+        ];
+
+        const PRECEDENCE_MAP = TIE_BREAKER_PRECEDENCE.reduce((acc, name, index) => {
+            acc[name] = index;
+            return acc;
+        }, {});
+
+        function getPrecedence(name) {
+            return PRECEDENCE_MAP.hasOwnProperty(name) ? PRECEDENCE_MAP[name] : Infinity;
+        }
+
+        // --- Stato Globale e Elementi DOM ---
+        let totalDays;
+        let currentDayIndex; // 1-based index (1 to 13)
+        let historicalChart = null;
+
+        const rankingBody = document.getElementById('ranking-body');
+        const totalPlayers = document.getElementById('total-players');
+        const infoBox = document.getElementById('info-box');
+        const chartContainer = document.getElementById('chart-container');
+        const chartToggleButton = document.getElementById('chart-toggle-btn');
+        const rankingTableContainer = document.getElementById('ranking-table-container');
+        const matchDayTitle = document.getElementById('match-day-title'); 
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const headerPrevTotal = document.getElementById('header-prev-total');
+        const headerDayPoints = document.getElementById('header-day-points');
+        const headerTotalPoints = document.getElementById('header-total-points');
+        
+        // Espone currentDayIndex globalmente per l'uso nei pulsanti HTML
+        window.currentDayIndex = currentDayIndex;
+
+
+        // Funzione per mostrare messaggi (sostituisce alert)
+        let infoTimeout;
+        window.infoMessage = function(message) {
+            clearTimeout(infoTimeout);
+            infoBox.textContent = message;
+            infoBox.classList.remove('hidden', 'opacity-0');
+            infoBox.classList.add('opacity-100');
+
+            infoTimeout = setTimeout(() => {
+                infoBox.classList.remove('opacity-100');
+                infoBox.classList.add('opacity-0');
+                setTimeout(() => {
+                    infoBox.classList.add('hidden');
+                }, 300);
+            }, 3000);
+        };
+
+        /**
+         * Calcola la classifica per una giornata specifica (dayIndex).
+         * @param {number} dayIndex - L'indice della giornata (1 a totalDays).
+         * @returns {Array} Array di oggetti classifica ordinati.
+         */
+        function getRankingDataForDay(dayIndex) {
+            if (dayIndex < 1 || dayIndex > totalDays) {
+                console.error(`Giorno non valido: ${dayIndex}`);
+                return [];
+            }
+
+            const rankingData = [];
+
+            RAW_CUMULATIVE_DATA.forEach(player => {
+                // scores è 0-based. dayIndex è 1-based.
+                const scores = player.scores;
+                
+                // Indici 0-based
+                const currentDayScoreIndex = dayIndex - 1; // P.es. G13 -> index 12
+                const prevDayScoreIndex = dayIndex - 2;   // P.es. G13 -> index 11
+                
+                const currentTotalScore = scores[currentDayScoreIndex];
+                // Se dayIndex è 1, prevTotalScore è 0, altrimenti è il punteggio precedente
+                const prevTotalScore = dayIndex > 1 ? scores[prevDayScoreIndex] : 0; 
+                
+                // Calcola il punteggio ottenuto nella giornata corrente
+                const dayScore = currentTotalScore - prevTotalScore;
+
+                rankingData.push({
+                    name: player.name,
+                    dayScore: dayScore,
+                    totalScore: currentTotalScore,
+                    prevTotalScore: prevTotalScore,
+                });
+            });
+            
+            // Ordina la classifica per il display
+            const sortedRankingData = [...rankingData].sort((a, b) => {
+                // Criterio 1: Punti Totali (Decrescente) - CRITERIO PRINCIPALE
+                if (b.totalScore !== a.totalScore) {
+                    return b.totalScore - a.totalScore;
+                }
+                
+                // Criterio 2: Precedenza Giocatore (Ascendente) - Tie-Breaker Custom
+                const precedenceA = getPrecedence(a.name);
+                const precedenceB = getPrecedence(b.name);
+                return precedenceA - precedenceB;
+            });
+
+            return sortedRankingData;
+        }
+
+
+        /**
+         * Renderizza la tabella classifica.
+         * @param {Array} sortedRankingData - Dati della classifica ordinati.
+         * @param {number} dayIndex - Giornata corrente per i titoli.
+         */
+        function updateRankingDisplay(sortedRankingData, dayIndex) {
+            rankingBody.innerHTML = '';
+            
+            let displayRank = 1; 
+            let previousTotalScore = null;
+
+            // 1. Itera e assegna la posizione visualizzata con la logica del salto.
+            sortedRankingData.forEach((data, index) => {
+                const truePosition = index + 1;
+
+                // Salto di posizione in caso di parità (punti uguali)
+                if (index > 0 && data.totalScore === previousTotalScore) {
+                    // Mantieni la posizione visualizzata
+                } else {
+                    displayRank = truePosition;
+                }
+                
+                previousTotalScore = data.totalScore;
+                
+                const rankToDisplay = displayRank;
+                const isFirst = rankToDisplay === 1; 
+                
+                // Determina la riga con il punteggio giornaliero massimo e minimo SOLO per la giornata in corso
+                const dayScores = sortedRankingData.map(d => d.dayScore);
+                const maxScore = Math.max(...dayScores);
+                const minScore = Math.min(...dayScores);
+                
+                let dayScoreColorClass = 'text-gray-700';
+                if (data.dayScore > 0 && data.dayScore === maxScore) {
+                    dayScoreColorClass = 'text-green-600 font-extrabold'; // Miglior punteggio giornata
+                } else if (data.dayScore <= 0 && data.dayScore === minScore) {
+                    dayScoreColorClass = 'text-red-600 font-extrabold'; // Peggior punteggio giornata
+                } else if (data.dayScore > 0) {
+                     dayScoreColorClass = 'text-green-500 font-bold';
+                }
+
+                const row = document.createElement('tr');
+                let rowClasses = index % 2 === 0 ? 'rank-even' : 'rank-odd'; 
+                if (isFirst) {
+                    rowClasses = 'rank-1-bg';
+                }
+                row.className = rowClasses;
+                
+                const posCell = `
+                    <td class="px-3 py-3 whitespace-nowrap text-sm font-medium ${isFirst ? 'rank-1-text' : 'text-gray-600'}">
+                        <span class="pos-icon">${rankToDisplay}</span>
+                    </td>
+                `;
+
+                const nameCell = `
+                    <td class="px-4 py-3 whitespace-nowrap text-3xl italic font-bold ${isFirst ? 'rank-1-text' : 'text-gray-800'}">
+                        ${data.name}
+                    </td>
+                `;
+
+                // TOTALE PREC. (G0 se G1, altrimenti G_prev)
+                const prevTotalScoreCell = `
+                    <td class="px-4 py-3 whitespace-nowrap text-center text-base font-bold text-gray-500">
+                        ${data.prevTotalScore}
+                    </td>
+                `;
+
+                // PUNTI GIORNATA (Punti guadagnati nella giornata corrente)
+                const dayScoreCell = `
+                    <td class="px-4 py-3 whitespace-nowrap text-center text-base font-mono ${dayScoreColorClass}">
+                        ${data.dayScore >= 0 ? '+' : ''}${data.dayScore}
+                    </td>
+                `;
+
+                // PUNTI TOTALI (Punti cumulati fino a G_corrente)
+                const totalScoreCell = `
+                    <td class="px-4 py-3 whitespace-nowrap text-center text-3xl font-extrabold total-points-text">
+                        ${data.totalScore}
+                    </td>
+                `;
+
+                row.innerHTML = posCell + nameCell + prevTotalScoreCell + dayScoreCell + totalScoreCell;
+                rankingBody.appendChild(row);
+            });
+            
+            // Aggiorna il numero totale di giocatori
+            totalPlayers.textContent = sortedRankingData.length;
+        }
+
+        /**
+         * Aggiorna i titoli e lo stato dei pulsanti di navigazione.
+         * @param {number} dayIndex - Giornata corrente.
+         */
+        function updateControls(dayIndex) {
+            // Aggiorna il titolo della giornata
+            matchDayTitle.textContent = `${dayIndex}a GIORNATA`;
+
+            // Aggiorna le intestazioni della tabella (usando "Giorn." come abbreviato)
+            if (dayIndex === 1) {
+                headerPrevTotal.textContent = `TOTALE PREC. (0 Giorn.)`;
+                headerDayPoints.textContent = `PUNTI GIORNATA (Giorn. 1)`;
+                headerTotalPoints.textContent = `PUNTI TOTALI (Giorn. 1)`;
+            } else {
+                headerPrevTotal.textContent = `TOTALE PREC. (Giorn. ${dayIndex - 1})`;
+                headerDayPoints.textContent = `PUNTI GIORNATA (Giorn. ${dayIndex})`;
+                headerTotalPoints.textContent = `PUNTI TOTALI (Giorn. ${dayIndex})`;
+            }
+
+            // Gestione dei pulsanti Avanti/Indietro
+            prevBtn.disabled = dayIndex <= 1;
+            nextBtn.disabled = dayIndex >= totalDays;
+
+            // Aggiorna il testo del pulsante grafico per la coerenza
+            chartToggleButton.textContent = `Vedi Andamento Stagionale (1a Giornata - ${totalDays}a Giornata)`;
+        }
+
+        /**
+         * Funzione principale per cambiare la giornata visualizzata.
+         * @param {number} newDayIndex - La giornata a cui navigare (1 a totalDays).
+         */
+        window.goToDay = function(newDayIndex) {
+            if (newDayIndex < 1 || newDayIndex > totalDays) {
+                return; // Fuori dai limiti
+            }
+
+            // 1. Aggiorna lo stato
+            currentDayIndex = newDayIndex;
+            window.currentDayIndex = newDayIndex; // Aggiorna la variabile globale per HTML
+
+            // 2. Ottieni i dati per il giorno specifico
+            const rankingData = getRankingDataForDay(currentDayIndex);
+
+            // 3. Aggiorna la visualizzazione
+            updateRankingDisplay(rankingData, currentDayIndex);
+
+            // 4. Aggiorna i controlli (titoli e pulsanti)
+            updateControls(currentDayIndex);
+        }
+        
+        /**
+         * Renderizza il grafico dell'andamento storico utilizzando i dati cumulativi completi.
+         */
+        function renderChart() {
+            // Etichette delle Giornate (1a Giorn., 2a Giorn., ...) - Usa "Giorn."
+            const labels = [];
+            for (let i = 1; i <= totalDays; i++) {
+                labels.push(`${i}a Giorn.`);
+            }
+            
+            // Preparazione dei dataset
+            const datasets = RAW_CUMULATIVE_DATA.map((player, index) => {
+                return {
+                    label: player.name,
+                    data: player.scores, // Dati cumulativi completi
+                    borderColor: COLORS[index % COLORS.length],
+                    backgroundColor: COLORS[index % COLORS.length] + '20', 
+                    tension: 0.3, 
+                    fill: false,
+                    pointRadius: 4,
+                    pointHoverRadius: 7,
+                };
+            });
+
+            const ctx = document.getElementById('historicalChart').getContext('2d');
+            if (historicalChart) {
+                historicalChart.destroy(); // Distrugge l'istanza precedente se esiste
+            }
+
+            historicalChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        },
+                        title: {
+                            display: true,
+                            // Nel titolo, "Giornata" esteso è più leggibile
+                            text: `Andamento Punti Cumulativi (1a Giornata - ${totalDays}a Giornata)`,
+                            font: { size: 16, weight: 'bold' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Punti Totali'
+                            },
+                            beginAtZero: true 
+                        },
+                        x: {
+                             grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * Mostra o nasconde il grafico e la tabella.
+         */
+        window.toggleChart = function() {
+            const isChartVisible = chartContainer.classList.toggle('hidden');
+            rankingTableContainer.classList.toggle('hidden');
+            
+            if (!isChartVisible) {
+                chartToggleButton.textContent = 'Torna alla Classifica';
+                renderChart();
+            } else {
+                chartToggleButton.textContent = `Vedi Andamento Stagionale (1a Giornata - ${totalDays}a Giornata)`;
+            }
+        };
+
+
+        // --- Inizializzazione ---
+        // Calcola il numero totale di giorni disponibili
+        totalDays = RAW_CUMULATIVE_DATA.length > 0 ? RAW_CUMULATIVE_DATA[0].scores.length : 0;
+        
+        // Inizia visualizzando l'ultima giornata
+        goToDay(totalDays); 
+
+    </script>
+</body>
+</html>
